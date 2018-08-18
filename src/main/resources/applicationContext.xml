@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" 
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="
+        http://www.springframework.org/schema/beans 
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/tx 
+        http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/aop 
+        http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+        
+        <!-- Spring扫描，让其不扫描控制器 -->
+        <context:component-scan base-package="com.lijia">
+        	<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+        </context:component-scan>
+        
+        
+        
+        <!-- Spring的配置文件：主要配置业务逻辑相关的 -->
+        <!-- 映入外部的文件 -->
+        <context:property-placeholder location="classpath:jdbc.properties"/>
+        <!-- 数据源 -->
+        <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        	<property name="driverClass" value="${jdbc.driverClass}"></property>
+        	<property name="jdbcUrl" value="${jdbc.jdbcUrl}"></property>
+        	<property name="user" value="${jdbc.user}"></property>
+        	<property name="password" value="${jdbc.password}"></property>
+        </bean>
+        
+        
+        <!-- 注册SqlsessionFactory的Bean -->
+        <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        	<!-- 指定mybatis主配置文件的位置 -->
+        	<property name="configLocation" value="classpath:mybatis-config.xml"></property>
+        	<!-- 指定数据源 -->
+        	<property name="dataSource" ref="dataSource"></property>
+        	<!-- 指定mybatis的mapper文件的位置 -->
+        	<property name="mapperLocations" value="classpath:mapper/*.xml"></property>
+        </bean>
+        
+        <!-- 生成Dao的代理对象 -->
+        <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        	<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"></property>
+        	<!-- 指定基本的扫描包，即Dao接口包 -->
+        	<property name="basePackage" value="com.lijia.crud.dao"></property>
+        	
+        </bean>
+        
+        <!-- 配置事务管理 -->
+        <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        	<!-- 控制住数据源 -->
+        	<property name="dataSource" ref="dataSource"></property>
+        </bean>
+      
+        <!-- 配置通知,事务如何切入 -->
+        <tx:advice id="txAdvic" transaction-manager="transactionManager">
+        	<tx:attributes>
+        		<!-- 所有的方法都是事务方法 -->
+        		<tx:method name="*"/>
+        		<!-- 以get开始的所有方法 -->
+        		<tx:method name="get*" read-only="true"/>
+        	</tx:attributes>
+        </tx:advice>
+        <!-- aop配置 -->
+        <aop:config>
+        	<!-- 切入点表达式 -->
+        	<aop:pointcut expression="execution(* com.lijia.crud.service..*(..))" id="Pointcut"/>
+        	<!-- 配置事务增强 -->
+        	<aop:advisor advice-ref="txAdvic" pointcut-ref="Pointcut"/>
+        </aop:config>
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+</beans>
