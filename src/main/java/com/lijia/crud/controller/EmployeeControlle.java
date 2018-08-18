@@ -43,8 +43,6 @@ public class EmployeeControlle {
 	//@RequestMapping("/emps")
 	public String getEmps(@RequestParam(value="pn",defaultValue="1") Integer pn,
 			Model model ) {
-		//这不是一个分页查询
-		//引入分页插件
 		//在查询之前只需要调用，传入页码，以及每页的大小
 		PageHelper.startPage(pn, 5);
 		////startPage后面紧跟的这个查询是一个分页查询
